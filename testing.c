@@ -413,7 +413,7 @@ void multichannel_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     {
         for (h = 0; h < height; h++)
         {
-           memset(output[m][h], 0.0, sizeof(float) * nkernels * height);          
+            memset(output[m][h], 0.0, sizeof(float) * nkernels * height);
         }
     }
 
@@ -446,40 +446,42 @@ void multichannel_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     }                 // w
 }
 #include <string.h>
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <unistd.h> 
-#include <pthread.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
 
-typedef struct s_xyzzy {
+typedef struct s_xyzzy
+{
     float ***image;
     struct sparse_matrix ***kernels;
-    float ***output; 
+    float ***output;
     int nchannels, nkernels, kernel_order, x, y, w, h;
 } xyzzy;
 
-void *lethread(void *lol){
-  xyzzy *p = (xyzzy *) lol;
-  int m,index;
-  int nkernels = p->nkernels;
-  float ***output = p->output; 
-  int nchannels = p->nchannels;
-  int kernel_order = p->kernel_order;
-  int x = p->x;
-  int y = p->y; 
-  int w = p->w;
-  int h = p->h;
-  float *i = p->image[w + x][h + y];
-  struct sparse_matrix *kernel = p->kernels[x][y];
-  for (m = 0; m < nkernels; m++)
-  {
-      for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
-      {
-          int this_c = kernel->channel_numbers[index];
-          assert((this_c >= 0) && (this_c < nchannels));
-          output[m][h][w] += i[this_c] * kernel->values[index];
-      }
-  } // m
+void *lethread(void *lol)
+{
+    xyzzy *p = (xyzzy *)lol;
+    int m, index;
+    int nkernels = p->nkernels;
+    float ***output = p->output;
+    int nchannels = p->nchannels;
+    int kernel_order = p->kernel_order;
+    int x = p->x;
+    int y = p->y;
+    int w = p->w;
+    int h = p->h;
+    float *i = p->image[w + x][h + y];
+    struct sparse_matrix *kernel = p->kernels[x][y];
+    for (m = 0; m < nkernels; m++)
+    {
+        for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
+        {
+            int this_c = kernel->channel_numbers[index];
+            assert((this_c >= 0) && (this_c < nchannels));
+            output[m][h][w] += i[this_c] * kernel->values[index];
+        }
+    } // m
 }
 
 /* the fast version of sparse convolution written by the team */
@@ -487,15 +489,16 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
                       float ***output, int width, int height,
                       int nchannels, int nkernels, int kernel_order)
 {
-    int h, w, x, y, c,m;
+    int h, w, x, y, c, m;
     float value;
-  
+    pthread_t tid;
+
     // initialize the output matrix to zero
     for (m = 0; m < nkernels; m++)
     {
         for (h = 0; h < height; h++)
         {
-           memset(output[m][h], 0.0, sizeof(float) * nkernels * height);          
+            memset(output[m][h], 0.0, sizeof(float) * width);
         }
     }
 
@@ -508,7 +511,6 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
         {
             for (x = 0; x < kernel_order; x++)
             {
-                pthread_t tid; 
                 for (y = 0; y < kernel_order; y++)
                 {
                     xyzzy tmp;
@@ -523,12 +525,13 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
                     tmp.w = w;
                     tmp.h = h;
 
-                    pthread_create(&tid, NULL, lethread, &tmp); 
-                }     // y
-                pthread_exit(NULL); 
-            }         // x
-        }             // h
-    }                 // w
+                    pthread_create(&tid, NULL, lethread, &tmp);
+                } // y
+                // for (y = 0; y < kernel_order; y++)
+                //     pthread_join(tid[y], NULL);
+            } // x
+        }     // h
+    }         // w
 }
 
 int main(int argc, char **argv)
