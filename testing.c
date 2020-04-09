@@ -461,10 +461,7 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     {
         for (h = 0; h < height; h++)
         {
-            for (w = 0; w < width; w++)
-            {
-                output[m][h][w] = 0.0;
-            }
+            memset(output[m][h], 0, width * sizeof(float));
         }
     }
 
@@ -475,20 +472,19 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     {
         for (h = 0; h < height; h++)
         {
-            double sum = 0.0;
             for (x = 0; x < kernel_order; x++)
             {
                 for (y = 0; y < kernel_order; y++)
                 {
                     struct sparse_matrix *kernel = kernels[x][y];
+                    float *img = image[w + x][h + y];
                     for (m = 0; m < nkernels; m++)
                     {
                         for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
                         {
                             int this_c = kernel->channel_numbers[index];
                             assert((this_c >= 0) && (this_c < nchannels));
-                            value = kernel->values[index];
-                            output[m][h][w] += image[w + x][h + y][this_c] * value;
+                            output[m][h][w] += img[this_c] * kernel->values[index];
                         }
                     } // m
                 }     // y
