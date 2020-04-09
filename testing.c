@@ -448,13 +448,13 @@ void multichannel_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     }                 // w
 }
 #include <string.h>
+#include <xmmintrin.h>
 /* the fast version of sparse convolution written by the team */
 void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
                       float ***output, int width, int height,
                       int nchannels, int nkernels, int kernel_order)
 {
     int h, w, x, y, c, m, index;
-    float value;
 
     // initialize the output matrix to zero
     for (m = 0; m < nkernels; m++)
@@ -466,27 +466,12 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     // now compute multichannel, multikernel convolution
 
     for (x = 0; x < kernel_order; x++)
-    {
         for (y = 0; y < kernel_order; y++)
-        {
-            struct sparse_matrix *kernel = kernels[x][y];
             for (m = 0; m < nkernels; m++)
-            {
-                for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
-                {
+                for (index = kernels[x][y]->kernel_starts[m]; index < kernels[x][y]->kernel_starts[m + 1]; index++)
                     for (h = 0; h < height; h++)
-                    {
                         for (w = 0; w < width; w++)
-                        {
-                            int this_c = kernel->channel_numbers[index];
-                            assert((this_c >= 0) && (this_c < nchannels));
-                            output[m][h][w] += image[w + x][h + y][this_c] * kernel->values[index];
-                        }
-                    }
-                }
-            }
-        }
-    }
+                            output[m][h][w] += image[w + x][h + y][kernels[x][y]->channel_numbers[index]] * kernels[x][y]->values[index];
 }
 
 int main(int argc, char **argv)
