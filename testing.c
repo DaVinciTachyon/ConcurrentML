@@ -458,39 +458,35 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
 
     // initialize the output matrix to zero
     for (m = 0; m < nkernels; m++)
-    {
         for (h = 0; h < height; h++)
-        {
             memset(output[m][h], 0, width * sizeof(float));
-        }
-    }
 
     DEBUGGING(fprintf(stderr, "w=%d, h=%d, c=%d\n", w, h, c));
 
     // now compute multichannel, multikernel convolution
-    for (w = 0; w < width; w++)
+
+    for (x = 0; x < kernel_order; x++)
     {
-        for (h = 0; h < height; h++)
+        for (y = 0; y < kernel_order; y++)
         {
-            for (x = 0; x < kernel_order; x++)
+            struct sparse_matrix *kernel = kernels[x][y];
+            for (m = 0; m < nkernels; m++)
             {
-                for (y = 0; y < kernel_order; y++)
+                for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
                 {
-                    struct sparse_matrix *kernel = kernels[x][y];
-                    float *img = image[w + x][h + y];
-                    for (m = 0; m < nkernels; m++)
+                    for (h = 0; h < height; h++)
                     {
-                        for (index = kernel->kernel_starts[m]; index < kernel->kernel_starts[m + 1]; index++)
+                        for (w = 0; w < width; w++)
                         {
                             int this_c = kernel->channel_numbers[index];
                             assert((this_c >= 0) && (this_c < nchannels));
-                            output[m][h][w] += img[this_c] * kernel->values[index];
+                            output[m][h][w] += image[w + x][h + y][this_c] * kernel->values[index];
                         }
-                    } // m
-                }     // y
-            }         // x
-        }             // h
-    }                 // w
+                    }
+                }
+            }
+        }
+    }
 }
 
 int main(int argc, char **argv)
