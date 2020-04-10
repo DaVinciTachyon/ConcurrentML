@@ -447,8 +447,8 @@ void multichannel_conv_sparse(float ***image, struct sparse_matrix ***kernels,
         }             // h
     }                 // w
 }
+
 #include <string.h>
-#include <xmmintrin.h>
 /* the fast version of sparse convolution written by the team */
 void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
                       float ***output, int width, int height,
@@ -456,23 +456,31 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
 {
     int h, w, x, y, c, m, index;
 
-    // initialize the output matrix to zero
+    // set the optimal number of threads for it to run on stoker
     omp_set_num_threads(32);
+    // initialize the output matrix to zero
+    // collapse the nested for loops so that the instantiations may run in parallel using the available threads
 #pragma omp parallel for collapse(2)
     for (m = 0; m < nkernels; m++)
         for (h = 0; h < height; h++)
+            //set blocks of memory rather than individual floats one at a time
             memset(output[m][h], 0, width * sizeof(float));
 
     DEBUGGING(fprintf(stderr, "w=%d, h=%d, c=%d\n", w, h, c));
 
 // now compute multichannel, multikernel convolution
+// set a parallel region to allow the later nowait to work
 #pragma omp parallel
     {
+        // the for loops are nested in such a way that the variables are only set when they are needed
         for (x = 0; x < kernel_order; x++)
             for (y = 0; y < kernel_order; y++)
                 for (m = 0; m < nkernels; m++)
+                    // got rid of the declaration and initialisation of kernel because it would take longer then just referencing the array directly
                     for (index = kernels[x][y]->kernel_starts[m]; index < kernels[x][y]->kernel_starts[m + 1]; index++)
                     {
+                        // collapsed the for loops that are non dependent, which allows the operation to run in parallel
+                        // used nowait, because later iterations in the parallel region are not dependent on the results of this, therefore allowing the threads to be fully used at all times
 #pragma omp for collapse(2) nowait
                         for (h = 0; h < height; h++)
                             for (w = 0; w < width; w++)
