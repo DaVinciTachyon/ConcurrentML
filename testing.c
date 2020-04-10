@@ -465,17 +465,20 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
 
     DEBUGGING(fprintf(stderr, "w=%d, h=%d, c=%d\n", w, h, c));
 
-    // now compute multichannel, multikernel convolution
-    for (x = 0; x < kernel_order; x++)
-        for (y = 0; y < kernel_order; y++)
-            for (m = 0; m < nkernels; m++)
-                for (index = kernels[x][y]->kernel_starts[m]; index < kernels[x][y]->kernel_starts[m + 1]; index++)
-                {
-#pragma omp parallel for collapse(2)
-                    for (h = 0; h < height; h++)
-                        for (w = 0; w < width; w++)
-                            output[m][h][w] += image[w + x][h + y][kernels[x][y]->channel_numbers[index]] * kernels[x][y]->values[index];
-                }
+// now compute multichannel, multikernel convolution
+#pragma omp parallel
+    {
+        for (x = 0; x < kernel_order; x++)
+            for (y = 0; y < kernel_order; y++)
+                for (m = 0; m < nkernels; m++)
+                    for (index = kernels[x][y]->kernel_starts[m]; index < kernels[x][y]->kernel_starts[m + 1]; index++)
+                    {
+#pragma omp for collapse(2) nowait
+                        for (h = 0; h < height; h++)
+                            for (w = 0; w < width; w++)
+                                output[m][h][w] += image[w + x][h + y][kernels[x][y]->channel_numbers[index]] * kernels[x][y]->values[index];
+                    }
+    }
 }
 
 int main(int argc, char **argv)
