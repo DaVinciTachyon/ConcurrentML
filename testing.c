@@ -457,7 +457,7 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
     int h, w, x, y, c, m, index;
 
     // set the optimal number of threads for it to run on stoker
-    omp_set_num_threads(32);
+    // omp_set_num_threads(32);
     // initialize the output matrix to zero
     // collapse the nested for loops so that the instantiations may run in parallel using the available threads
 #pragma omp parallel for collapse(2)
@@ -551,9 +551,19 @@ int main(int argc, char **argv)
 
     control_output = new_empty_3d_matrix(nkernels, width, height);
 
+    /* record starting time of team's code*/
+    gettimeofday(&start_time, NULL);
+
     /* use a simple multichannel convolution routine to produce control result */
     multichannel_conv_dense(image, kernels, control_output, width,
                             height, nchannels, nkernels, kernel_order);
+
+    /* record finishing time */
+    gettimeofday(&stop_time, NULL);
+
+    mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
+               (stop_time.tv_usec - start_time.tv_usec);
+    printf("Original conv time:\t%lld microseconds\n", mul_time);
 
     /* record starting time of team's code*/
     gettimeofday(&start_time, NULL);
@@ -574,7 +584,7 @@ int main(int argc, char **argv)
 
     mul_time = (stop_time.tv_sec - start_time.tv_sec) * 1000000L +
                (stop_time.tv_usec - start_time.tv_usec);
-    printf("Team conv time: %lld microseconds\n", mul_time);
+    printf("Team conv time:\t\t%lld microseconds\n", mul_time);
 
     DEBUGGING(write_out(output, nkernels, width, height));
 

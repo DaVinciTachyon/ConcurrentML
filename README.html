@@ -9,7 +9,7 @@
 <h1 id="concurrentml" data-line="0" class="code-line">ConcurrentML</h1>
 <h4 id="hedgehog-michael-mcguinness16322635-liam-sherlock17308853" data-line="1" class="code-line">HEDGEHOG Michael McGuinness(16322635), Liam Sherlock(17308853)</h4>
 <h3 id="clearing-the-output" data-line="3" class="code-line">Clearing the Output.</h3>
-<p data-line="5" class="code-line">There are two modifications in this section. It started out as 3 for loops with a $ O(m * h^2) $ runtime. The $ h^2 $ is derived from the fact that given the bounds of the assignment the hight and width will always be equal.</p>
+<p data-line="5" class="code-line">There are two modifications in this section. It started out as 3 for loops with a $ O(m * h^2) $ runtime. The $ h^2 $ is derived from the fact that given the bounds of the assignment the height and width will always be equal.</p>
 <pre><code data-line="7" class="code-line language-c"><div><span class="hljs-keyword">for</span> (m = <span class="hljs-number">0</span>; m &lt; nkernels; m++)
     {
         <span class="hljs-keyword">for</span> (h = <span class="hljs-number">0</span>; h &lt; height; h++)
@@ -26,7 +26,7 @@
 <li data-line="22" class="code-line">Instead of using 3 for loops to set each slot as 0 we modified it to use 2 for loops and setting the resulting 1d matrix to zero using memset.</li>
 <li data-line="23" class="code-line">We used Open MP to parallelize the whole process.</li>
 </ol>
-<p data-line="25" class="code-line">Intially we tried using <code>memset()</code> to set the entire array but unfortunatly due to the way the 3D array is created, often using linked lists, you can't just set the memory in one go without causing errors.</p>
+<p data-line="25" class="code-line">Initially we tried using <code>memset()</code> to set the entire array but unfortunately due to the way the 3D array is created, often using linked lists, you can't just set the memory in one go without causing errors.</p>
 <pre><code data-line="27" class="code-line language-c"><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> omp parallel for collapse(2)</span>
     <span class="hljs-keyword">for</span> (m = <span class="hljs-number">0</span>; m &lt; nkernels; m++)
         <span class="hljs-keyword">for</span> (h = <span class="hljs-number">0</span>; h &lt; height; h++)
@@ -68,7 +68,7 @@
 <li data-line="71" class="code-line">We parallelised the <code>height</code> and <code>width</code> for loops using <code>#pragma omp for collapse(2)</code>. This is advantageous for a few reasons. In order to properly parallelise nested for loops, we need to make sure that the for loops that are being nested do not rely on each other, and this is the case for these two for loops. The second advantage is that these are generally the largest loops, i.e. they have the most amount of iterations out of any of the other loops being nested. This allows for the bulk of the work to be parallelised.</li>
 <li data-line="72" class="code-line">The <code>nowait</code> clause is used to parallelise these for loops. This is possible because the future operations done within the loops is not affected by other iterations of the external loops being done first. It also allows the available threads to be fully used at all times, rather than waiting for each set of loops to be completed first.</li>
 </ol>
-<p data-line="74" class="code-line">Intially, we tried to reduce the amount of for loops by combining the loops. However, we found this to be slowing the program down, as even though you are using one loop you have to decrypt the different x, y, h, w values using divide and modulo. In the end we found this to be slower over all. We also condidered using <code>#pragma omp for collapse(3)</code> for the first three nested for loops, intead of using the internal case, however, we decided against this because of how the height and width are far larger in most cases. On top of this, we look into vectorising the operation being done, and found no appropriate solution because of how 3-dimensional dimensional arrays are stored in c.</p>
+<p data-line="74" class="code-line">Intially, we tried to reduce the amount of for loops by combining the loops. However, we found this to be slowing the program down, as even though you are using one loop you have to decrypt the different x, y, h, w values using divide and modulo. In the end we found this to be slower over all. We also considered using <code>#pragma omp for collapse(3)</code> for the first three nested for loops, instead of using the internal case, however, we decided against this because of how the height and width are far larger in most cases. On top of this, we look into vectorising the operation being done, and found no appropriate solution because of how 3-dimensional dimensional arrays are stored in c.</p>
 <div style="page-break-after: always;"></div>
 <pre><code data-line="78" class="code-line language-c"><div><span class="hljs-meta">#<span class="hljs-meta-keyword">pragma</span> omp parallel</span>
 {
