@@ -109,3 +109,7 @@ Finally, we used `#pragma omp for collapse(2) nowait`, which collapsed the for l
 | Image Width | Image Height | Kernel Order | Number of Channels | Number of Kernels | Non-Zero Ratio | Team Execution Time (μs) |
 | ----------- | ------------ | ------------ | ------------------ | ----------------- | -------------- | ------------------------ |
 | 300         | 300          | 3            | 16                 | 512               | 20             | 581986                   |
+|16 |16| 3 |32| 32 |20|15349 |
+| 300 | 300 | 3 | 512 |512|20|45242928|
+|512|512|3|16|16|1000|69708|
+|512|512|7|16|512|1000|526856 |
