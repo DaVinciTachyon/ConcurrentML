@@ -89,5 +89,31 @@
 <p data-line="98" class="code-line">For the zeroing of the output we used <code>#pragma omp parallel for collapse(2)</code>. It collapses the nested for loops so that the internal opreations may run in parallel using the available threads.</p>
 <p data-line="100" class="code-line">For the computations we used <code>#pragma omp parallel</code> to compute the multichannel, multikernel convolution. We set a parallel region to allow the later nowait to work.</p>
 <p data-line="102" class="code-line">Finally, we used <code>#pragma omp for collapse(2) nowait</code>, which collapsed the for loops that are non dependent, allowing the operation to run in parallel. We used <code>nowait</code>, because later iterations in the parallel region are not dependent on the results of this, allowing the threads to be fully used at all times.</p>
+<div style="page-break-after: always;"></div>
+<h2 id="test-results" data-line="106" class="code-line">Test Results.</h2>
+<table>
+<thead>
+<tr>
+<th>Image Width</th>
+<th>Image Height</th>
+<th>Kernel Order</th>
+<th>Number of Channels</th>
+<th>Number of Kernels</th>
+<th>Non-Zero Ratio</th>
+<th>Team Execution Time (μs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>300</td>
+<td>300</td>
+<td>3</td>
+<td>16</td>
+<td>512</td>
+<td>20</td>
+<td>581986</td>
+</tr>
+</tbody>
+</table>
 
 </body></html>

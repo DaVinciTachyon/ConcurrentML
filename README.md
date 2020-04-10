@@ -102,3 +102,10 @@ For the computations we used `#pragma omp parallel` to compute the multichannel,
 
 Finally, we used `#pragma omp for collapse(2) nowait`, which collapsed the for loops that are non dependent, allowing the operation to run in parallel. We used `nowait`, because later iterations in the parallel region are not dependent on the results of this, allowing the threads to be fully used at all times.
 
+<div style="page-break-after: always;"></div>
+
+## Test Results.
+
+| Image Width | Image Height | Kernel Order | Number of Channels | Number of Kernels | Non-Zero Ratio | Team Execution Time (μs) |
+| ----------- | ------------ | ------------ | ------------------ | ----------------- | -------------- | ------------------------ |
+| 300         | 300          | 3            | 16                 | 512               | 20             | 581986                   |
