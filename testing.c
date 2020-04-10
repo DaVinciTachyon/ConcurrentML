@@ -456,7 +456,8 @@ void team_conv_sparse(float ***image, struct sparse_matrix ***kernels,
 {
     int h, w, x, y, c, m, index;
 
-// initialize the output matrix to zero
+    // initialize the output matrix to zero
+    omp_set_num_threads(16);
 #pragma omp parallel for collapse(2)
     for (m = 0; m < nkernels; m++)
         for (h = 0; h < height; h++)
