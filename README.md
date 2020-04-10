@@ -89,6 +89,26 @@ Intialy we tried to reduce the amount of forloops by compining the loops however
 ```
 
 ### Open MP.
+```c
+omp_set_num_threads(32); 
+```
+For the assignment we found that when using stoker 32 threads was the optimal amount of threads any more and we found that it slowed it down. 
 
-omp_set_num_threads(32);
+For the zeroing of the output we used.
+```c
+#pragma omp parallel for collapse(2)
+```
+It collapse the nested for loops so that the instantiations may run in parallel using the available threads
+
+For the computations we used 
+```c
+#pragma omp parallel
+```
+ to compute the multichannel, multikernel convolution. We set a parallel region to allow the later nowait to work
+
+Finaly we used 
+```c
+#pragma omp for collapse(2) nowait
+```
+Which collapsed the for loops that are non dependent, allowing the operation to run in parallel. We used nowait, because later iterations in the parallel region are not dependent on the results of this, therefore allowing the threads to be fully used at all times.
 
